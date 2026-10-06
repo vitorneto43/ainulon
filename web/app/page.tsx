@@ -34,7 +34,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/search?q=${encodeURIComponent(term)}`
+        `https://api.ainulon.com/search?q=${encodeURIComponent(term)}`
       );
 
       if (!response.ok) {
