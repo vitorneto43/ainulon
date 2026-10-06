@@ -47,28 +47,107 @@ def search(
     query = q.strip()
 
     sql = """
+        WITH ranked AS (
+            SELECT
+                u.url,
+                p.title,
+                p.description,
+                p.updated_at,
+                ts_rank_cd(
+                    setweight(
+                        to_tsvector(
+                            'simple',
+                            COALESCE(p.title, '')
+                        ),
+                        'A'
+                    )
+                    ||
+                    setweight(
+                        to_tsvector(
+                            'simple',
+                            COALESCE(p.description, '')
+                        ),
+                        'B'
+                    )
+                    ||
+                    setweight(
+                        to_tsvector(
+                            'simple',
+                            COALESCE(p.content, '')
+                        ),
+                        'D'
+                    ),
+                    plainto_tsquery('simple', %s)
+                ) AS text_score,
+                CASE
+                    WHEN LOWER(COALESCE(p.title, '')) = LOWER(%s)
+                        THEN 2.0
+                    WHEN LOWER(COALESCE(p.title, '')) LIKE LOWER(%s) || '%%'
+                        THEN 0.8
+                    WHEN LOWER(COALESCE(p.title, '')) LIKE '%%' || LOWER(%s) || '%%'
+                        THEN 0.4
+                    ELSE 0.0
+                END AS title_boost,
+                CASE
+                    WHEN LOWER(u.url) LIKE '%%' || LOWER(%s) || '%%'
+                        THEN 0.1
+                    ELSE 0.0
+                END AS url_boost,
+                ts_headline(
+                    'simple',
+                    CONCAT_WS(
+                        ' ',
+                        NULLIF(p.description, ''),
+                        COALESCE(p.content, '')
+                    ),
+                    plainto_tsquery('simple', %s),
+                    'MaxWords=30, MinWords=10, StartSel=<mark>, StopSel=</mark>'
+                ) AS snippet
+            FROM pages p
+            JOIN urls u
+                ON u.id = p.url_id
+            WHERE
+                (
+                    setweight(
+                        to_tsvector(
+                            'simple',
+                            COALESCE(p.title, '')
+                        ),
+                        'A'
+                    )
+                    ||
+                    setweight(
+                        to_tsvector(
+                            'simple',
+                            COALESCE(p.description, '')
+                        ),
+                        'B'
+                    )
+                    ||
+                    setweight(
+                        to_tsvector(
+                            'simple',
+                            COALESCE(p.content, '')
+                        ),
+                        'D'
+                    )
+                ) @@ plainto_tsquery('simple', %s)
+        )
         SELECT
-            u.url,
-            p.title,
-            p.description,
-            ts_rank(
-                p.search_vector,
-                plainto_tsquery('simple', %s)
+            url,
+            title,
+            description,
+            (
+                text_score
+                + title_boost
+                + url_boost
             ) AS score,
-            ts_headline(
-                'simple',
-                COALESCE(p.content, ''),
-                plainto_tsquery('simple', %s),
-                'MaxWords=30, MinWords=10, StartSel=<mark>, StopSel=</mark>'
-            ) AS snippet
-        FROM pages p
-        JOIN urls u
-            ON u.id = p.url_id
-        WHERE
-            p.search_vector @@ plainto_tsquery('simple', %s)
+            snippet
+        FROM ranked
+        WHERE text_score >= 0.005
         ORDER BY
             score DESC,
-            p.updated_at DESC
+            updated_at DESC
         LIMIT %s;
     """
 
@@ -77,6 +156,10 @@ def search(
             cur.execute(
                 sql,
                 (
+                    query,
+                    query,
+                    query,
+                    query,
                     query,
                     query,
                     query,
