@@ -10,6 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+      - ./infra/database/migrations/002_crawl_control.sql:/docker-entrypoint-initdb.d/002-crawl-control.sql:ro
     networks:
       - ainulon-network
     healthcheck:
