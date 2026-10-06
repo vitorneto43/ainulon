@@ -30,7 +30,18 @@ IGNORED_QUERY_PARAMS = {
     "q",
 }
 
+CHALLENGE_TITLES = {
+    "client challenge",
+    "just a moment...",
+    "access denied",
+    "attention required! | cloudflare",
+}
 
+CHALLENGE_TEXT_MARKERS = {
+    "verify you are human",
+    "checking your browser",
+    "enable javascript and cookies to continue",
+}
 
 
 def should_ignore_url(url: str) -> bool:
@@ -46,6 +57,22 @@ def should_ignore_url(url: str) -> bool:
 
     return bool(
         query_params & IGNORED_QUERY_PARAMS
+    )
+
+
+def is_challenge_page(
+    title: str | None,
+    content: str,
+) -> bool:
+    normalized_title = (title or "").strip().lower()
+    normalized_content = content.lower()
+
+    if normalized_title in CHALLENGE_TITLES:
+        return True
+
+    return any(
+        marker in normalized_content
+        for marker in CHALLENGE_TEXT_MARKERS
     )
 
 
@@ -174,9 +201,25 @@ def crawl(
             return
 
         page = parse_html(
-            response.text,
+            response.content,
             final_url,
         )
+
+        if is_challenge_page(
+            page.title,
+            page.content,
+        ):
+            mark_ignored_url(
+                url_id,
+                "Página de challenge/bloqueio",
+            )
+
+            print(
+                f"⏭️ Página de challenge ignorada: "
+                f"{final_url}"
+            )
+
+            return
 
         language = detect_language(
             page.html_language,
