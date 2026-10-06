@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, ReactNode, useState } from "react";
 
 type SearchResult = {
   url: string;
@@ -15,6 +15,27 @@ type SearchResponse = {
   count: number;
   results: SearchResult[];
 };
+
+function renderSnippet(snippet: string): ReactNode[] {
+  const parts = snippet.split(/(<mark>.*?<\/mark>)/gi);
+
+  return parts.map((part, index) => {
+    const match = part.match(/^<mark>(.*?)<\/mark>$/i);
+
+    if (match) {
+      return (
+        <mark
+          key={index}
+          className="rounded bg-yellow-100 px-0.5 text-inherit"
+        >
+          {match[1]}
+        </mark>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+}
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -110,12 +131,9 @@ export default function Home() {
                       {result.title || result.url}
                     </a>
 
-                    <p
-                      className="mt-2 leading-6 text-zinc-700"
-                      dangerouslySetInnerHTML={{
-                        __html: result.snippet,
-                      }}
-                    />
+                    <p className="mt-2 leading-6 text-zinc-700">
+                      {renderSnippet(result.snippet)}
+                    </p>
                   </article>
                 ))}
               </div>
