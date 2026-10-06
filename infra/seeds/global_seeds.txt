@@ -1,0 +1,45 @@
+# Ainulon Global Seeds v1
+# Conhecimento / enciclopédias
+https://pt.wikipedia.org/
+https://en.wikipedia.org/
+https://es.wikipedia.org/
+https://fr.wikipedia.org/
+https://de.wikipedia.org/
+https://it.wikipedia.org/
+https://ja.wikipedia.org/
+https://zh.wikipedia.org/
+https://ar.wikipedia.org/
+https://hi.wikipedia.org/
+https://ru.wikipedia.org/
+https://ko.wikipedia.org/
+
+# Organizações internacionais
+https://www.un.org/
+https://www.who.int/
+https://www.unesco.org/
+https://www.worldbank.org/
+
+# Ciência e espaço
+https://www.nasa.gov/
+https://www.esa.int/
+https://www.nature.com/
+https://www.science.org/
+
+# Educação
+https://www.khanacademy.org/
+https://www.edx.org/
+https://ocw.mit.edu/
+
+# Tecnologia
+https://github.com/
+https://stackoverflow.com/
+https://developer.mozilla.org/
+
+# Notícias / informação internacional
+https://www.bbc.com/
+https://www.reuters.com/
+https://apnews.com/
+
+# Cultura
+https://www.gutenberg.org/
+https://archive.org/
