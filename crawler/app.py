@@ -1,5 +1,5 @@
 import time
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 from url_utils import normalize_url
 
 import requests
@@ -30,6 +30,16 @@ IGNORED_QUERY_PARAMS = {
     "q",
 }
 
+IGNORED_PATH_MARKERS = {
+    "special:search",
+    "especial:buscar",
+    "spezial:suche",
+    "spécial:recherche",
+    "speciale:ricerca",
+    "特別:検索",
+    "특수:검색",
+}
+
 CHALLENGE_TITLES = {
     "client challenge",
     "just a moment...",
@@ -55,8 +65,14 @@ def should_ignore_url(url: str) -> bool:
         )
     }
 
-    return bool(
-        query_params & IGNORED_QUERY_PARAMS
+    if query_params & IGNORED_QUERY_PARAMS:
+        return True
+
+    decoded_path = unquote(parsed.path).lower()
+
+    return any(
+        marker in decoded_path
+        for marker in IGNORED_PATH_MARKERS
     )
 
 
