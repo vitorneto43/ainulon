@@ -21,7 +21,7 @@ def is_http_url(url: str) -> bool:
     return parsed.scheme in {"http", "https"}
 
 
-def parse_html(html: str, base_url: str) -> ParsedPage:
+def parse_html(html: str | bytes, base_url: str) -> ParsedPage:
     soup = BeautifulSoup(html, "html.parser")
 
     title = None
