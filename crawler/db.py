@@ -494,5 +494,3 @@ def mark_ignored_url(
             )
 
         conn.commit()
-
-    return row[0] if row else None
